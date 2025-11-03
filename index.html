@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>给你的小惊喜</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            love: {
+              pink: '#FF7EB9',
+              purple: '#B794F4',
+              blue: '#63B3ED',
+              mint: '#68D391',
+              peach: '#FBD38D',
+              lavender: '#9F7AEA'
+            }
+          },
+          fontFamily: {
+            cute: ['"Comic Sans MS"', '"Marker Felt"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .chat-bubble {
+        @apply rounded-2xl p-4 max-w-xs shadow-lg transform transition-all duration-1000 ease-out opacity-0;
+      }
+      .chat-bubble.show {
+        @apply opacity-100;
+      }
+      .heart-beat {
+        animation: heartbeat 1.5s ease-in-out infinite;
+      }
+      @keyframes heartbeat {
+        0% { transform: scale(1); }
+        14% { transform: scale(1.1); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.1); }
+        70% { transform: scale(1); }
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-pink-50 to-purple-50 min-h-screen overflow-hidden font-cute">
+  <!-- 主容器 -->
+  <div id="chat-container" class="relative w-full h-screen">
+    <!-- 初始提示 -->
+    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10">
+      <p class="text-2xl md:text-4xl text-love-purple font-bold mb-4 heart-beat">
+        <i class="fa fa-heart text-love-pink"></i> 给你的小惊喜 <i class="fa fa-heart text-love-pink"></i>
+      </p>
+      <button id="start-btn" class="bg-love-pink hover:bg-love-pink/80 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+        点击开始
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 关心的话语列表
+    const messages = [
+      "宝贝，今天有没有好好吃饭呀？",
+      "天气变凉了，记得多穿点衣服哦",
+      "想你啦，你在忙什么呢？",
+      "累不累呀？要不要休息一下",
+      "你的笑容是我每天最大的动力",
+      "晚上别熬夜啦，早点睡觉好不好",
+      "今天也要开开心心的呀",
+      "有什么不开心的一定要告诉我",
+      "我会一直陪着你的，永远永远",
+      "你今天真的超美的！",
+      "记得多喝水，补充水分很重要",
+      "不管发生什么，我都会在你身边",
+      "看到你开心，我就特别幸福",
+      "工作再忙也要注意休息呀",
+      "你是我这辈子最想珍惜的人",
+      "等你有空了，我们去吃你最喜欢的那家店吧",
+      "你的小情绪我都看在眼里哦",
+      "别给自己太大压力，你已经很棒了",
+      "我会努力成为更能保护你的人",
+      "一想到你，我就忍不住笑",
+      "今天有没有发生什么好玩的事情呀？",
+      "如果累了，我的肩膀永远给你靠",
+      "你做什么我都支持你",
+      "和你在一起的每一天都很甜蜜",
+      "我会记住你说过的每一句话",
+      "照顾好自己，不然我会担心的",
+      "你就是我的小太阳，照亮我的每一天",
+      "不管多久，我对你的爱都不会变",
+      "你的一切我都好喜欢",
+      "想和你一起做很多很多事情",
+      "有你在身边，我什么都不怕",
+      "你今天有没有想我呀？",
+      "遇到你是我这辈子最幸运的事",
+      "我会努力让你每天都开开心心的",
+      "你就是我生命中最美的风景"
+    ];
+
+    // 聊天框颜色类名
+    const bubbleColors = [
+      "bg-love-pink/90 text-white",
+      "bg-love-purple/90 text-white",
+      "bg-love-blue/90 text-white",
+      "bg-love-mint/90 text-white",
+      "bg-love-peach/90 text-white",
+      "bg-love-lavender/90 text-white",
+      "bg-white/90 text-love-purple border-2 border-love-pink",
+      "bg-white/90 text-love-pink border-2 border-love-purple"
+    ];
+
+    const container = document.getElementById('chat-container');
+    const startBtn = document.getElementById('start-btn');
+    let isRunning = false;
+    let intervalId = null;
+
+    // 创建聊天框函数
+    function createChatBubble() {
+      const bubble = document.createElement('div');
+      
+      // 随机选择消息和颜色
+      const message = messages[Math.floor(Math.random() * messages.length)];
+      const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
+      
+      // 设置样式
+      bubble.className = `chat-bubble ${color} absolute`;
+      bubble.textContent = message;
+      
+      // 随机位置
+      const maxX = container.clientWidth - 200; // 减去气泡最大宽度
+      const maxY = container.clientHeight - 100; // 减去气泡最大高度
+      const x = Math.floor(Math.random() * maxX);
+      const y = Math.floor(Math.random() * maxY);
+      
+      bubble.style.left = `${x}px`;
+      bubble.style.top = `${y}px`;
+      
+      // 随机小角度旋转
+      const rotation = (Math.random() - 0.5) * 10; // -5到5度之间
+      bubble.style.transform = `rotate(${rotation}deg)`;
+      
+      container.appendChild(bubble);
+      
+      // 触发渐显动画
+      setTimeout(() => {
+        bubble.classList.add('show');
+      }, 10);
+      
+      // 设置气泡消失时间
+      setTimeout(() => {
+        bubble.classList.remove('show');
+        setTimeout(() => {
+          if (container.contains(bubble)) {
+            container.removeChild(bubble);
+          }
+        }, 1000);
+      }, 5000 + Math.random() * 5000); // 5-10秒后消失
+    }
+
+    // 开始生成聊天框
+    function startBubbles() {
+      // 隐藏初始提示
+      document.querySelector('.absolute.top-1/2').classList.add('opacity-0');
+      setTimeout(() => {
+        document.querySelector('.absolute.top-1/2').remove();
+      }, 1000);
+      
+      isRunning = true;
+      
+      // 初始生成一批气泡
+      for (let i = 0; i < 5; i++) {
+        setTimeout(createChatBubble, i * 500);
+      }
+      
+      // 设置定时器持续生成
+      intervalId = setInterval(createChatBubble, 800);
+    }
+
+    // 点击开始按钮
+    startBtn.addEventListener('click', startBubbles);
+
+    // 窗口大小变化时调整位置
+    window.addEventListener('resize', () => {
+      const bubbles = document.querySelectorAll('.chat-bubble');
+      bubbles.forEach(bubble => {
+        const maxX = container.clientWidth - 200;
+        const maxY = container.clientHeight - 100;
+        const x = Math.floor(Math.random() * maxX);
+        const y = Math.floor(Math.random() * maxY);
+        
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y}px`;
+      });
+    });
+  </script>
+</body>
+</html>  
+</h1>    
+</body>
+</html>
